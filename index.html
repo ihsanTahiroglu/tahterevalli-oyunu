@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tahterevalli İşlem Oyunu</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      padding: 20px;
+      background: #d0f0c0 url('https://cdn.pixabay.com/photo/2020/10/21/08/58/playground-5670755_1280.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    h2 {
+      text-align: center;
+      color: #2e7d32;
+      font-size: 2rem;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 15px;
+      display: inline-block;
+    }
+    .tahtirevalli-container {
+      display: flex;
+      justify-content: space-around;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .tahtirevalli {
+      background: #fff8e1;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      width: 45%;
+      text-align: center;
+      border: 4px dashed #ff8f00;
+      margin-bottom: 40px;
+      position: relative;
+    }
+    .balance {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .balance input {
+      width: 45%;
+      padding: 10px;
+      font-size: 1.2rem;
+      border: 2px solid #f57c00;
+      border-radius: 10px;
+      background-color: #fffde7;
+    }
+    .result {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #6d4c41;
+      background-color: #fff3e0;
+      padding: 8px;
+      border-radius: 10px;
+    }
+    .scale {
+      width: 100%;
+      height: 20px;
+      background: linear-gradient(to right, #ffb74d, #f06292);
+      margin-top: 20px;
+      position: relative;
+      transform: rotate(0deg);
+      transition: transform 0.5s ease-in-out;
+      border-radius: 10px;
+    }
+    .scale::before, .scale::after {
+      content: '';
+      position: absolute;
+      top: -45px;
+      width: 60px;
+      height: 60px;
+      background: url('https://cdn.pixabay.com/photo/2014/04/02/14/06/children-307553_1280.png') no-repeat center/contain;
+    }
+    .scale::before {
+      left: 0;
+    }
+    .scale::after {
+      right: 0;
+    }
+    .fulcrum {
+      width: 0;
+      height: 0;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-bottom: 40px solid #8d6e63;
+      margin: 0 auto;
+      position: relative;
+      top: -1px;
+    }
+    .children-img {
+      display: block;
+      margin: 30px auto;
+      max-width: 500px;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: #66bb6a;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #43a047;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎠 Tahterevalli İşlem Önceliği Oyunu 🎪</h2>
+
+  <audio id="dingSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_9b4f3e6b95.mp3" preload="auto"></audio>
+  <audio id="correctSound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_6f54b5fc24.mp3" preload="auto"></audio>
+  <audio id="wrongSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_f512b1a993.mp3" preload="auto"></audio>
+
+  <img src="/mnt/data/pngegg.png" alt="Çocuklar oyun parkında" class="children-img" />
+
+  <div class="tahtirevalli-container">
+    <div class="tahtirevalli" id="durum1">
+      <h3>1. Durum</h3>
+      <div class="balance">
+        <input type="text" placeholder="Sol işlem" id="sol1">
+        <input type="text" placeholder="Sağ işlem" id="sag1">
+      </div>
+      <div class="scale" id="scale1"></div>
+      <div class="fulcrum"></div>
+      <div class="result" id="sonuc1"></div>
+    </div>
+
+    <div class="tahtirevalli" id="durum2">
+      <h3>2. Durum</h3>
+      <div class="balance">
+        <input type="text" placeholder="Sol işlem" id="sol2">
+        <input type="text" placeholder="Sağ işlem" id="sag2">
+      </div>
+      <div class="scale" id="scale2"></div>
+      <div class="fulcrum"></div>
+      <div class="result" id="sonuc2"></div>
+    </div>
+  </div>
+
+  <button onclick="kontrolEt()">🎯 Dengeyi Test Et</button>
+
+  <script>
+    const dingSound = document.getElementById('dingSound');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+
+    function hesaplaIfade(ifade) {
+      try {
+        return Function(`"use strict"; return (${ifade})`)();
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    function kontrolEt() {
+      kontrolDurum('1');
+      kontrolDurum('2');
+    }
+
+    function kontrolDurum(numara) {
+      const sol = document.getElementById('sol' + numara).value;
+      const sag = document.getElementById('sag' + numara).value;
+      const sonucSol = hesaplaIfade(sol);
+      const sonucSag = hesaplaIfade(sag);
+
+      let sonucYazi = '';
+      let derece = 0;
+
+      if (isNaN(sonucSol) || isNaN(sonucSag)) {
+        sonucYazi = 'Lütfen geçerli işlemler girin.';
+        derece = 0;
+        wrongSound.play();
+      } else if (sonucSol === sonucSag) {
+        sonucYazi = `Dengede ✔️ (${sonucSol} = ${sonucSag})`;
+        derece = 0;
+        correctSound.play();
+      } else if (sonucSol > sonucSag) {
+        sonucYazi = `Sol ağır ↙️ (${sonucSol} > ${sonucSag})`;
+        derece = -10;
+        dingSound.play();
+      } else {
+        sonucYazi = `Sağ ağır ↘️ (${sonucSol} < ${sonucSag})`;
+        derece = 10;
+        dingSound.play();
+      }
+
+      document.getElementById('sonuc' + numara).innerText = sonucYazi;
+      document.getElementById('scale' + numara).style.transform = `rotate(${derece}deg)`;
+    }
+  </script>
+</body>
+</html>
